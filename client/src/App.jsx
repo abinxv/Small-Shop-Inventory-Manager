@@ -92,7 +92,7 @@ function App() {
           <p className="eyebrow">Small Shop Inventory Manager</p>
           <h1>Simple retail inventory control with products, suppliers, stock, sales, and reports.</h1>
           <p className="hero__copy">
-            Built with the MERN stack in JavaScript only. Stock changes are tracked through
+            Built with the MERN stack. Stock changes are tracked through
             purchases, sales, and adjustments, and the backend prevents negative stock at all
             times.
           </p>

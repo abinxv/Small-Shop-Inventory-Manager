@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import Panel from "../components/Panel";
 import { inventoryApi } from "../api";
-import { formatCurrency, formatDate, getTodayDate } from "../utils";
+import { formatCurrency, formatDate } from "../utils";
 
 const initialDateFilters = {
   startDate: "",
-  endDate: getTodayDate()
+  endDate: ""
 };
 
 function ReportsSection({ refreshKey }) {
   const [dateFilters, setDateFilters] = useState(initialDateFilters);
-  const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [analyticsDays, setAnalyticsDays] = useState("");
   const [inventoryReport, setInventoryReport] = useState(null);
   const [salesReport, setSalesReport] = useState(null);
   const [purchaseReport, setPurchaseReport] = useState(null);
@@ -34,6 +34,17 @@ function ReportsSection({ refreshKey }) {
     return query ? `?${query}` : "";
   };
 
+  const buildAnalyticsQuery = () => {
+    const params = new URLSearchParams();
+    params.set("limit", "8");
+
+    if (analyticsDays) {
+      params.set("days", analyticsDays);
+    }
+
+    return `?${params.toString()}`;
+  };
+
   const loadReports = async () => {
     setIsLoading(true);
     setErrorMessage("");
@@ -45,7 +56,7 @@ function ReportsSection({ refreshKey }) {
         inventoryApi.getSalesReport(query),
         inventoryApi.getPurchaseReport(query),
         inventoryApi.getLowStockReport(),
-        inventoryApi.getAnalyticsReport(`?days=${analyticsDays}&limit=8`)
+        inventoryApi.getAnalyticsReport(buildAnalyticsQuery())
       ]);
 
       setInventoryReport(inventory);
@@ -64,11 +75,15 @@ function ReportsSection({ refreshKey }) {
     loadReports();
   }, [dateFilters.startDate, dateFilters.endDate, analyticsDays, refreshKey]);
 
+  const analyticsWindowLabel = analyticsReport?.days
+    ? `${analyticsReport.days} days`
+    : "All Time";
+
   return (
     <div className="section-grid">
       <Panel
         title="Report Filters"
-        subtitle="Reports now refresh automatically when filters change or new stock activity is recorded."
+        subtitle="Reports default to all-time data. Add dates or an analytics window only when you want to filter."
       >
         <div className="filters-row">
           <label>
@@ -104,6 +119,7 @@ function ReportsSection({ refreshKey }) {
               min="1"
               value={analyticsDays}
               onChange={(event) => setAnalyticsDays(event.target.value)}
+              placeholder="Leave blank for all time"
             />
           </label>
           <button type="button" className="button button--primary" onClick={loadReports}>
@@ -166,7 +182,7 @@ function ReportsSection({ refreshKey }) {
 
       {analyticsReport ? (
         <div className="two-column-grid">
-          <Panel title={`Fast-Moving (${analyticsReport.days} days)`}>
+          <Panel title={`Fast-Moving (${analyticsWindowLabel})`}>
             <div className="table-wrap">
               <table>
                 <thead>
@@ -191,7 +207,7 @@ function ReportsSection({ refreshKey }) {
               </table>
             </div>
           </Panel>
-          <Panel title={`Low-Selling (${analyticsReport.days} days)`}>
+          <Panel title={`Low-Selling (${analyticsWindowLabel})`}>
             <div className="table-wrap">
               <table>
                 <thead>

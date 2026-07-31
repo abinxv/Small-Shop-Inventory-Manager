@@ -7,6 +7,15 @@ const parsePositiveNumber = (value, fallback) => {
   return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : fallback;
 };
 
+const parseOptionalPositiveNumber = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+};
+
 const buildDateQuery = ({ startDate, endDate, defaultDays = null }) => {
   const dateQuery = {};
 
@@ -267,7 +276,7 @@ const getLowStockReport = async (req, res, next) => {
 
 const getAnalyticsReport = async (req, res, next) => {
   try {
-    const days = parsePositiveNumber(req.query.days, 30);
+    const days = parseOptionalPositiveNumber(req.query.days);
     const limit = parsePositiveNumber(req.query.limit, 10);
 
     const analytics = await buildAnalyticsPayload(days, limit);
@@ -285,4 +294,3 @@ module.exports = {
   getLowStockReport,
   getAnalyticsReport
 };
-
