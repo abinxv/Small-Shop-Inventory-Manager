@@ -21,16 +21,9 @@ app.use(async (req, res, next) => {
   next();
 });
 
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",").map((origin) => origin.trim())
-  : true;
-
-app.use(
-  cors({
-    origin: allowedOrigins
-  })
-);
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 app.get("/api/health", (req, res) => {
@@ -40,6 +33,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Serve static React app files
 const distPath = path.resolve(__dirname, "../../dist");
 const clientDistPath = path.resolve(__dirname, "../../client/dist");
 const staticPath = fs.existsSync(path.join(distPath, "index.html"))
@@ -48,10 +42,18 @@ const staticPath = fs.existsSync(path.join(distPath, "index.html"))
 
 app.use(express.static(staticPath));
 
+// API routes (both /api/ and fallback)
 app.use("/api/products", productRoutes);
+app.use("/products", productRoutes);
+
 app.use("/api/suppliers", supplierRoutes);
+app.use("/suppliers", supplierRoutes);
+
 app.use("/api/stock-movements", stockMovementRoutes);
+app.use("/stock-movements", stockMovementRoutes);
+
 app.use("/api/reports", reportRoutes);
+app.use("/reports", reportRoutes);
 
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) {
