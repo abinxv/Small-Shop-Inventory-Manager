@@ -1,6 +1,7 @@
 const cors = require("cors");
 const dotenv = require("dotenv");
 const express = require("express");
+const fs = require("fs");
 const morgan = require("morgan");
 const path = require("path");
 
@@ -39,10 +40,29 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+const distPath = path.resolve(__dirname, "../../dist");
+const clientDistPath = path.resolve(__dirname, "../../client/dist");
+const staticPath = fs.existsSync(path.join(distPath, "index.html"))
+  ? distPath
+  : clientDistPath;
+
+app.use(express.static(staticPath));
+
 app.use("/api/products", productRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/stock-movements", stockMovementRoutes);
 app.use("/api/reports", reportRoutes);
+
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return notFound(req, res, next);
+  }
+  const indexPath = path.join(staticPath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  next();
+});
 
 app.use(notFound);
 app.use(errorHandler);
